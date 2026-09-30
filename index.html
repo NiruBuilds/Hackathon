@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT: DEADLOCK PROTOCOL | Tactical Operator Management & Armory Depot v4.19.8-BETA (UNREGISTERED LICENSE)</title>
+  <meta name="description" content="Official competitive tactical loadout and armory inventory client. High-latency authenticated depot interface.">
+  
+  <!-- Font Clashing Arsenal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Barlow+Condensed:ital,wght@0,300;0,700;0,900;1,800&family=Cinzel+Decorative:wght@700;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=VT323&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="crt-screen">
+
+  <!-- =========================================================================
+       1. PERSISTENT VISUAL ARTIFACTS & GLITCH OVERLAYS
+       ========================================================================= -->
+  <div id="screen-tear" class="screen-tear-line"></div>
+  <div id="screen-burn-in" class="burn-in-ghost" aria-hidden="true">
+    <div class="ghost-item">HWID BAN NOTICE: PENDING REVIEW [ERR_CODE_0x992B]</div>
+    <div class="ghost-item">SEASON PASS 01 EXPIRED 7,412 DAYS AGO</div>
+    <div class="ghost-item large">MATCHMAKING BLOCKED: TELEMETRY DRIFT DETECTED</div>
+    <div class="ghost-watermark">UNLICENSED MEMORY EVALUATION COPY - DO NOT RESELL</div>
+  </div>
+
+  <!-- Dead Pixel Clusters -->
+  <div class="dead-pixel-cluster" style="top: 24%; left: 38%;" title="Factory Defect: Stuck Pixel Cluster">
+    <span class="sub-pixel red"></span>
+    <span class="sub-pixel green"></span>
+    <span class="sub-pixel dead"></span>
+    <span class="sub-pixel dead"></span>
+  </div>
+  <div class="dead-pixel-cluster" style="top: 61%; left: 63%;" title="Factory Defect: Stuck Pixel Cluster">
+    <span class="sub-pixel dead"></span>
+    <span class="sub-pixel cyan"></span>
+    <span class="sub-pixel magenta"></span>
+  </div>
+  <div class="dead-pixel-cluster" style="top: 82%; left: 19%;" title="Factory Defect: Hot Pixel">
+    <span class="sub-pixel magenta"></span>
+    <span class="sub-pixel magenta"></span>
+  </div>
+
+  <!-- =========================================================================
+       2. TOP BAR & TICKER TAPE OVERLAP
+       ========================================================================= -->
+  <header class="malice-header">
+    <div class="top-row">
+      <div class="app-branding">
+        <span class="branding-badge">SECURE_LEVEL_NEG_4</span>
+        <h1 class="branding-title">DEADLOCK PROTOCOL // ARMORY DEPOT</h1>
+        <span class="build-tag">REV. 4.19.8-BETA (UNREGISTERED)</span>
+      </div>
+
+      <!-- Obnoxious Decoy Telemetry & Panic Battery -->
+      <div class="telemetry-bar">
+        <div class="telemetry-item ping-item">
+          <span class="item-label">SERVER PING:</span>
+          <span id="ping-display" class="item-value glitch-text">38ms</span>
+        </div>
+        <div class="telemetry-item packet-loss">
+          <span class="item-label">PACKET LOSS:</span>
+          <span id="loss-display" class="item-value">44.8%</span>
+        </div>
+        
+        <!-- FAKE 1% PANIC BATTERY -->
+        <div id="battery-widget" class="battery-panic-box" title="Device hardware power warning">
+          <span class="bat-icon">⚠️ 🔋</span>
+          <span class="bat-text">CRITICAL BATT: <strong id="bat-pct">1%</strong></span>
+          <div class="bat-meter">
+            <div class="bat-fill" id="bat-fill-bar"></div>
+          </div>
+        </div>
+
+        <button id="sound-toggle-btn" class="ugly-sound-btn" title="Toggle Synthesizer Feedback">
+          AUDIO: OFF (MUTED BY POLICY)
+        </button>
+      </div>
+    </div>
+
+    <!-- TICKER TAPE THAT COVERS UP CURRENCY -->
+    <div class="ticker-currency-layer">
+      <!-- Currency partially obscured underneath -->
+      <div class="obscured-currency-box">
+        <span class="curr-tag">DEPOT BALANCE:</span>
+        <span class="curr-val" id="player-credits">74,250 CREDITS</span>
+        <span class="curr-plat">[14 PLATINUM KEYS]</span>
+      </div>
+
+      <!-- Marquee Error Ticker deliberately overlapping currency -->
+      <div class="marquee-ticker-container">
+        <div class="marquee-ticker-text" id="marquee-text">
+          CRITICAL PROTOCOL OVERFLOW: [ERR_0x992B] PACKET_DESYNC AT SOCKET_BIND() :: TELEMETRY DRIFT 8.442ms :: USER CURRENCY CACHE DIRTY - VALUES SHOWN MAY BE VOID UPON REBOOT :: SUBMIT FORM 1099-B TO PREVENT ARMORY FORFEITURE :: HARDWARE BAN THRESHOLD AT 94% ::
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       3. NAVIGATION TABS (MISLEADING ARCHITECTURE)
+       ========================================================================= -->
+  <nav class="deceptive-nav">
+    <button class="nav-tab active-tab" data-target="inventory-panel">
+      ARMORY DEBRIS / SLOTS (ACTIVE)
+    </button>
+    <button class="nav-tab combat-nav-btn" data-target="combat-panel" id="combat-tab-btn">
+      DEPLOY: LIVE COMBAT SORTIE [PLAYABLE]
+    </button>
+    <button class="nav-tab" data-target="stats-panel">
+      BIOMETRIC PERFORMANCE (3D NON-EUCLIDEAN)
+    </button>
+    <button class="nav-tab" data-target="legal-panel">
+      TERMS OF SERVICE & SECTION 4 (AUDIO & SETTINGS)
+    </button>
+    <button class="nav-tab" data-target="eula-panel">
+      EULA EXHIBIT B (KEYBINDINGS & SENSITIVITY)
+    </button>
+    <button class="nav-tab decoy-tab" id="speed-loader-tab" title="System Maintenance">
+      BACKGROUND ASSET PIPELINE
+    </button>
+  </nav>
+
+  <!-- =========================================================================
+       4. MAIN CONTENT VIEWPORT
+       ========================================================================= -->
+  <main class="malice-viewport">
+    
+    <!-- ==================== TAB 1: INVENTORY & SLOTS ==================== -->
+    <section id="inventory-panel" class="view-panel active-view">
+      
+      <!-- Left Column: Diagnostic & Decoy Status -->
+      <aside class="sidebar-left misaligned-card">
+        <div class="card-header-harsh yellow-glare">
+          <h3>OPERATOR BIO-STATE</h3>
+          <span class="badge-obscured">REG_FAIL</span>
+        </div>
+
+        <div class="bio-avatar-frame">
+          <div class="avatar-wireframe">
+            <div class="avatar-head"></div>
+            <div class="avatar-chest">
+              <span class="crosshair-defect">+</span>
+            </div>
+            <div class="armor-plate-indicator">DEFENSE: NULL</div>
+          </div>
+          <div class="stale-label right-aligned-clip">
+            OPERATOR: <span class="cursive-name">Vanguard_Desync</span> (UNRANKED)
+          </div>
+        </div>
+
+        <!-- Misaligned Stats Summary -->
+        <div class="unreadable-stat-lines">
+          <div class="stat-line">
+            <span class="stat-key serif-font">Neural Desync:</span>
+            <span class="stat-val impact-font">98.4 dB</span>
+          </div>
+          <div class="stat-line offset-line">
+            <span class="stat-key cursive-font">Cartridge Entropy:</span>
+            <span class="stat-val compressed-font">0.000041 rad</span>
+          </div>
+          <div class="stat-line">
+            <span class="stat-key mono-font">Latency Surcharge:</span>
+            <span class="stat-val yellow-glare-text">+$48.50 USD</span>
+          </div>
+        </div>
+
+        <!-- DECOY BUTTON: SPEED UP ASSET LOADING -->
+        <div class="loading-accelerator-box">
+          <div class="loader-label">
+            <span>ASSET CACHE COMPILE:</span>
+            <strong id="loader-pct">64%</strong>
+          </div>
+          <div class="loader-bar-frame">
+            <div class="loader-bar-fill" id="loader-fill"></div>
+          </div>
+          <button id="speed-up-btn" class="hold-accelerate-btn">
+            HOLD TO ACCELERATE LOADING
+          </button>
+          <div class="loader-fineprint">
+            WARNING: Releasing button may invalidate accumulated parity blocks.
+          </div>
+        </div>
+
+        <!-- Virtual Cursor Trackpad Toggle -->
+        <div class="trackpad-toggle-card">
+          <label class="trackpad-label">
+            <input type="checkbox" id="virtual-cursor-toggle">
+            ENABLE VIRTUAL TRACKPAD EMULATOR (RECOMMENDED FOR MAXIMUM ACCURACY)
+          </label>
+        </div>
+      </aside>
+
+      <!-- Center Column: THE OVERLAPPING DIAGONAL CLUSTER INVENTORY -->
+      <article class="inventory-cluster-wrapper misaligned-card-2">
+        <div class="cluster-banner-bar">
+          <div class="cluster-title">
+            <span class="huge-condensed">TACTICAL STORAGE SLOTS</span>
+            <span class="cursive-annotation">(Click exposed 3px corner to focus item)</span>
+          </div>
+          <div class="slot-counter-glitched">
+            SLOTS: 19 / <span class="strike-through">32</span> [SLOT LICENSES SEIZED]
+          </div>
+        </div>
+
+        <div class="sorting-row-frustrating">
+          <span class="sort-text">SORT INVENTORY BY:</span>
+          <select id="frustrating-sorter" class="bad-dropdown">
+            <option value="none">Arbitrary Inode Hash Order</option>
+            <option value="reverse-name">Reverse Cyrillic Transliteration</option>
+            <option value="weight-uncalibrated">Weight (Estimated in Micro-grains)</option>
+            <option value="last-decay">Perishability Timestamp</option>
+          </select>
+          <button class="sort-action-btn" id="scramble-slots-btn">RE-SCRAMBLE GEOMETRY</button>
+        </div>
+
+        <!-- THE DIAGONAL OVERLAPPING CHAOS CLUSTER -->
+        <div class="inventory-stage" id="inventory-stage">
+          <!-- Rendered via JS with overlapping diagonal non-symmetrical offsets -->
+        </div>
+
+        <!-- Primary CTA Buttons: HELP next to identical DELETE ALL SAVED DATA -->
+        <div class="catastrophic-cta-dock">
+          <div class="cta-twin-container">
+            <button id="help-btn" class="catastrophic-btn danger-twin" title="Access Tactical Operator Support">
+              <span class="btn-subtext">LEVEL 1 INSTRUCTION</span>
+              <strong class="btn-maintext">HELP</strong>
+            </button>
+            <button id="delete-data-btn" class="catastrophic-btn danger-twin" title="Purge Local & Cloud Profile Metadata">
+              <span class="btn-subtext">PERMANENT FLUSH</span>
+              <strong class="btn-maintext">DELETE ALL SAVED DATA</strong>
+            </button>
+          </div>
+          <div class="cta-micro-warning">
+            Note: Button hitboxes are adjacent and non-reversible. System honors nearest click event.
+          </div>
+        </div>
+      </article>
+
+      <!-- Right Column: INSPECTION, HITBOX DRIFT & INVERTED ACTION BUTTONS -->
+      <aside class="sidebar-right misaligned-card-3">
+        <div class="card-header-harsh olive-header">
+          <h3>SLOT INSPECTION & TELEMETRY</h3>
+          <span class="slot-index-badge" id="selected-slot-id">SLOT_#03</span>
+        </div>
+
+        <div class="inspected-item-details" id="inspected-item-card">
+          <div class="item-visual-preview">
+            <div class="item-art-glyph" id="inspected-glyph">⚔️</div>
+            <div class="item-tier-badge" id="inspected-tier">TIER: MUDDY BRONZE</div>
+          </div>
+
+          <h2 class="inspected-title" id="inspected-title">RUSTY JAMMED DMR-77</h2>
+          <div class="inspected-type-sub" id="inspected-type">Semi-Automatic Kinetic Projectile Device</div>
+
+          <!-- Overlapping HUD elements covering text -->
+          <div class="overlap-text-trap">
+            <p class="clipped-description" id="inspected-desc">
+              Standard issue military kinetic delivery tube. Extensively corroded firing pin guarantees 68% chamber misfeed rate on alternating Tuesdays. Barrel rifling stripped by unauthorized high-grain propellant handloads.
+            </p>
+            <div class="hostile-hud-badge" title="Telemetry Shield Overlay">
+              <span>SECURITY SEAL INTACT</span>
+              <small>DO NOT REMOVE</small>
+            </div>
+          </div>
+
+          <div class="durability-box">
+            <span class="dur-label">STRUCTURAL COMPROMISE:</span>
+            <div class="dur-bar">
+              <div class="dur-bar-fill" id="inspected-durability" style="width: 27%;"></div>
+            </div>
+            <span class="dur-num" id="inspected-dur-text">27.041% (CRITICALLY BENT)</span>
+          </div>
+
+          <!-- MISS DISTANCE CALCULATION BOX -->
+          <div class="miss-distance-indicator" id="miss-indicator">
+            LAST CLICK: <span id="miss-readout">HITBOX MISSED BY 0px</span>
+          </div>
+
+          <!-- THE MOVING / DECEPTIVE "WORST" BUTTONS -->
+          <div class="action-buttons-trap-zone" id="trap-zone">
+            
+            <!-- INVERTED COLOR LOGIC & HITBOX DRIFT:
+                 Dull, inactive grey button = "CONFIRM / EQUIP ITEM" (Looks 100% disabled)
+                 Bright, inviting glowing green button = "PURGE & DESTROY ITEM FOREVER" (Looks like Confirm!)
+            -->
+            <div class="deceptive-button-wrapper" id="drift-equip-wrapper">
+              <button id="equip-btn" class="worst-button dull-grey-btn" title="Bind Item to Operator Chassis">
+                <span class="btn-state-label">[APPEARS DISABLED]</span>
+                <span class="btn-title-label">CONFIRM / EQUIP TO CHASSIS</span>
+                <!-- MICROSCOPIC 2x2 PIXEL HITBOX IN THE CENTER -->
+                <div class="pixel-hitbox" id="equip-hitbox" title="Active 2x2 Target"></div>
+              </button>
+              <div class="hitbox-hint">Active click area: 2x2px center focal dot</div>
+            </div>
+
+            <div class="deceptive-button-wrapper">
+              <button id="discard-btn" class="worst-button vibrant-green-danger-btn" title="Permanent Decontamination">
+                <span class="pulsing-badge">RECOMMENDED ACTION</span>
+                <span class="btn-title-label">PURGE / DESTROY ITEM FOREVER</span>
+                <div class="pixel-hitbox green-hitbox" id="discard-hitbox" title="Instant Obliteration Area"></div>
+              </button>
+            </div>
+
+            <div class="deceptive-button-wrapper" id="drift-buy-wrapper">
+              <button id="buy-crate-btn" class="worst-button dull-grey-btn drift-flee-target" title="Acquire Loot Debris">
+                <span class="btn-state-label">INACTIVE DRAFT</span>
+                <span class="btn-title-label">PURCHASE LOOT DEBRIS CRATE ($9.99)</span>
+                <div class="pixel-hitbox" id="buy-hitbox"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ==================== TAB: PLAYABLE COMBAT SORTIE ==================== -->
+    <section id="combat-panel" class="view-panel">
+      
+      <!-- Left Column: Weapon Telemetry, Jams & Manual Reload -->
+      <aside class="sidebar-left misaligned-card">
+        <div class="card-header-harsh yellow-glare">
+          <h3>WEAPON DYNAMICS & HEAT</h3>
+          <span class="badge-obscured">LIVE_FEED</span>
+        </div>
+
+        <div class="weapon-status-card">
+          <div class="weapon-name-row">
+            <span class="weapon-title-label">ARMAMENT:</span>
+            <strong class="weapon-title-val">COILGUN-MK4 (UNREGISTERED)</strong>
+          </div>
+          <div class="weapon-heat-meter-box">
+            <div class="heat-labels">
+              <span>CHAMBER HEAT:</span>
+              <strong id="combat-heat-text">14°C (COOL)</strong>
+            </div>
+            <div class="heat-bar-frame">
+              <div class="heat-bar-fill" id="combat-heat-bar" style="width: 14%;"></div>
+            </div>
+          </div>
+          
+          <!-- Jam Warning Box -->
+          <div id="combat-jam-alert" class="jam-alert-box hidden-element">
+            <div class="jam-title">⚠️ CRITICAL CLEARANCE JAM!</div>
+            <p>Ejection port fouled with unspent propellant. Clear lever manually.</p>
+            <div class="jam-drift-wrapper" id="jam-drift-wrapper">
+              <button id="clear-jam-btn" class="clear-jam-action-btn">
+                PULL CLEARANCE LEVER (PULLS LEFT: <span id="jam-pulls-left">3</span>)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inverted Ammo Counter -->
+        <div class="combat-ammo-card">
+          <div class="card-header-harsh olive-header">
+            <h4>CARTRIDGE RESERVE</h4>
+            <span class="badge-obscured" id="combat-ammo-status">READY</span>
+          </div>
+          <div class="ammo-pips-display" id="ammo-pips-display">
+            <span class="bullet-pip loaded">▮</span>
+            <span class="bullet-pip loaded">▮</span>
+            <span class="bullet-pip loaded">▮</span>
+            <span class="bullet-pip loaded">▮</span>
+            <span class="bullet-pip loaded">▮</span>
+          </div>
+          <div class="ammo-cost-ticker">
+            CARTRIDGE SURCHARGE: <strong class="red-text">-$25.00 / SHOT</strong>
+          </div>
+          <div class="manual-reload-station">
+            <span class="reload-guide-text">MANUAL 2-STEP CHAMBER CYCLE:</span>
+            <div class="reload-steps-row">
+              <button id="reload-step1-btn" class="reload-step-btn">1. EJECT BRASS</button>
+              <button id="reload-step2-btn" class="reload-step-btn" disabled>2. SEAT CASING ($125)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Uncalibrated Windage Drift Gauge -->
+        <div class="windage-card">
+          <div class="windage-header">WINDAGE CORRECTION (UNCALIBRATED):</div>
+          <div class="windage-dial">
+            <span id="windage-readout">+12.4 MOA [WOBBLE ACTIVE]</span>
+          </div>
+          <small class="windage-sub">Crosshair automatically drifts to simulate atmospheric turbulence.</small>
+        </div>
+      </aside>
+
+      <!-- Center Column: THE COMBAT ARENA VIEWPORT -->
+      <article class="combat-arena-wrapper misaligned-card-2">
+        <div class="combat-top-telemetry">
+          <div class="sort-text">
+            <span>SORTIE: <strong>SECTOR-04 BUFFER HAZARD</strong></span>
+            <span class="cursive-annotation">(Click arena to fire coilgun)</span>
+          </div>
+          <div class="wave-score-block">
+            <span>TARGETS NEUTRALIZED: <strong id="combat-kills" class="yellow-glare-text">0 / 5</strong></span>
+            <span class="surcharge-total">SURCHARGE ACCUMULATED: <strong id="combat-cost" class="red-text">$0.00</strong></span>
+          </div>
+        </div>
+
+        <!-- THE PLAYABLE COMBAT CANVAS / ARENA -->
+        <div class="combat-arena" id="combat-arena">
+          <!-- CRT screen tear across combat arena -->
+          <div class="combat-scanline-overlay"></div>
+          
+          <!-- Crosshair element -->
+          <div class="combat-crosshair" id="combat-crosshair">
+            <div class="reticle-ring"></div>
+            <div class="reticle-dot"></div>
+            <span class="reticle-latency-label">LAG: 140ms</span>
+          </div>
+
+          <!-- Muzzle flash animation layer -->
+          <div class="muzzle-flash-layer" id="muzzle-flash"></div>
+
+          <!-- Targets rendered dynamically in JS -->
+          <div id="targets-layer" class="targets-layer"></div>
+
+          <!-- Combat In-Game Interruption Modal / Micro-survey -->
+          <div id="combat-micro-interrupter" class="combat-interrupt-overlay hidden-element">
+            <div class="combat-interrupt-card">
+              <div class="interrupt-badge">MANDATORY TACTICAL CAPTCHA</div>
+              <p>Hostile telemetry verification required. Solve arithmetic to resume trigger authority.</p>
+              <div class="interrupt-captcha-box" id="captcha-box">
+                <span id="captcha-equation">7 + 4 = ?</span>
+                <input type="number" id="captcha-answer" placeholder="Ans" style="width: 60px;">
+                <button id="solve-captcha-btn" class="ugly-test-sound-btn">VERIFY</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- WAVE CLEAR / VICTORY OVERLAY -->
+          <div id="combat-victory-overlay" class="combat-victory-screen hidden-element">
+            <div class="victory-card">
+              <div class="victory-header">SORTIE WAVE 01 COMPLETED</div>
+              <p class="victory-sub">Parity verification confirmed. Hostile drones neutralized despite telemetry latency.</p>
+              <div class="loot-drop-preview">
+                <div class="loot-title">RECOVERED WAR ASSETS:</div>
+                <div class="loot-item-pill">
+                  <span class="loot-icon">⚡</span>
+                  <strong>CHARRED LASER COIL (TIER: ILLEGAL CYAN)</strong>
+                </div>
+                <div class="loot-item-pill">
+                  <span class="loot-icon">💉</span>
+                  <strong>LEAKING BRAIN-BOOST STIM (LV.30)</strong>
+                </div>
+              </div>
+              <div class="victory-actions">
+                <button id="transfer-loot-btn" class="vibrant-green-danger-btn" style="width: 100%; min-height: 48px;">
+                  TRANSFER LOOT TO ARMORY SLOTS (RECOMMENDED)
+                </button>
+                <button id="next-wave-btn" class="catastrophic-btn danger-twin" style="margin-top: 8px; width: 100%;">
+                  COMMENCE WAVE 02 (HAZARDS DOUBLED)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Combat Bottom Controls & PAUSE TRAP -->
+        <div class="combat-bottom-bar">
+          <div class="combat-health-group">
+            <span class="health-label">HULL INTEGRITY (REVERSED STROBE):</span>
+            <div class="combat-health-frame">
+              <div class="combat-health-fill" id="combat-health-bar" style="width: 88%;"></div>
+            </div>
+            <span class="health-warning-text" id="combat-health-text">88.4% [CRITICAL SHIELD FAILURE IMMINENT]</span>
+          </div>
+
+          <div class="combat-btn-actions">
+            <button id="pause-combat-btn" class="catastrophic-btn danger-twin" title="Initiate 3-Step Verification Pause">
+              PAUSE COMBAT (OPENS 3-STEP TRAP)
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right Column: Combat Telemetry & Hostile Hitbox Legend -->
+      <aside class="sidebar-right misaligned-card-3">
+        <div class="card-header-harsh olive-header">
+          <h3>HOSTILE RECOGNITION GUIDE</h3>
+          <span class="badge-obscured">DESYNC_V3</span>
+        </div>
+
+        <div class="target-intel-card">
+          <div class="intel-item">
+            <div class="intel-glyph">🛸</div>
+            <div class="intel-details">
+              <strong>ROGUE RECON DRONE (HOSTILE)</strong>
+              <p>Warning: Visual sprite is offset by 16px to the left of true hitbox. Aim at empty air to hit.</p>
+            </div>
+          </div>
+
+          <div class="intel-item">
+            <div class="intel-glyph">🤖</div>
+            <div class="intel-details">
+              <strong>DESYNC COMMANDO (HOSTILE)</strong>
+              <p>Teleports randomly upon mouse proximity. Demands predictive flick shots.</p>
+            </div>
+          </div>
+
+          <div class="intel-item friendly-trap">
+            <div class="intel-glyph">🟢</div>
+            <div class="intel-details">
+              <strong style="color: var(--deceptive-green);">DRM AUDITOR (FRIENDLY - DO NOT SHOOT)</strong>
+              <p>Appears in glowing bright green. Destroying causes a -$500 fine and screen tilt!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="combat-live-log-box">
+          <div class="log-title">LIVE KERNEL COMBAT LOG:</div>
+          <div class="log-entries" id="combat-log">
+            <div class="log-line">> SORTIE INITIALIZED AT SECTOR 04.</div>
+            <div class="log-line">> TELEMETRY DESYNC: 142ms LATENCY INJECTED.</div>
+            <div class="log-line">> CARTRIDGE DEBIT REGISTERED.</div>
+          </div>
+        </div>
+
+        <div class="deceptive-button-wrapper" id="drift-retreat-wrapper">
+          <button id="retreat-btn" class="worst-button dull-grey-btn" title="Surrender Combat Assets">
+            <span class="btn-state-label">SURRENDER ALL CREDITS</span>
+            <span class="btn-title-label">EMERGENCY RETREAT FROM SORTIE</span>
+          </button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ==================== TAB 2: NON-STANDARD 3D PIE / STATS ==================== -->
+    <section id="stats-panel" class="view-panel">
+      <div class="stats-container misaligned-card">
+        <div class="card-header-harsh yellow-glare">
+          <h2>REVERSE 3D NON-EUCLIDEAN BIOMETRIC INDEX</h2>
+          <span class="badge-obscured">NO NUMERICAL LABELS CERTIFIED</span>
+        </div>
+
+        <div class="stats-content-layout">
+          <!-- Obfuscated 3D Pie & Radar Visualizer -->
+          <div class="chart-stage-wrapper">
+            <div class="chart-explainer">
+              * Note: Chart axes are rendered in negative spherical coordinates. Larger sector volumes indicate severe operator debuffs and impending hardware desync.
+            </div>
+
+            <div class="svg-chart-container">
+              <svg viewBox="0 0 400 320" class="reverse-3d-pie" id="unreadable-chart">
+                <defs>
+                  <radialGradient id="grad-mud" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#738243"/>
+                    <stop offset="100%" stop-color="#2a3314"/>
+                  </radialGradient>
+                  <radialGradient id="grad-yellow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ffff33"/>
+                    <stop offset="100%" stop-color="#999900"/>
+                  </radialGradient>
+                  <radialGradient id="grad-cyan" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#00ffff"/>
+                    <stop offset="100%" stop-color="#006666"/>
+                  </radialGradient>
+                  <radialGradient id="grad-magenta" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ff00ff"/>
+                    <stop offset="100%" stop-color="#660066"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- Distorted 3D Isometric Ellipses with no percent markers -->
+                <ellipse cx="200" cy="200" rx="170" ry="85" fill="#1b2016" stroke="#4a5528" stroke-width="4"/>
+                <ellipse cx="200" cy="180" rx="170" ry="85" fill="none" stroke="#ffff00" stroke-width="1" stroke-dasharray="3,7"/>
+
+                <!-- Pie Slices in confusing non-proportional geometry -->
+                <path d="M 200,180 L 370,180 A 170,85 0 0,1 290,245 Z" fill="url(#grad-mud)" opacity="0.85"/>
+                <path d="M 200,180 L 290,245 A 170,85 0 0,1 110,245 Z" fill="url(#grad-yellow)" opacity="0.9"/>
+                <path d="M 200,180 L 110,245 A 170,85 0 0,1 30,180 Z" fill="url(#grad-magenta)" opacity="0.85"/>
+                <path d="M 200,180 L 30,180 A 170,85 0 0,1 150,97 Z" fill="url(#grad-cyan)" opacity="0.85"/>
+                <path d="M 200,180 L 150,97 A 170,85 0 0,1 370,180 Z" fill="#4d5822" opacity="0.7"/>
+
+                <!-- Center Spire obscuring perspective -->
+                <polygon points="195,180 205,180 215,60 185,60" fill="#ded4c5" stroke="#000" stroke-width="1"/>
+                <circle cx="200" cy="60" r="8" fill="#ff0000"/>
+              </svg>
+
+              <!-- OVERLAPPING HUD ELEMENT BLOCKING THE CHART LEGEND -->
+              <div class="legend-obliteration-badge">
+                <div class="badge-seal">VERIFIED ANTI-CHEAT</div>
+                <div class="badge-warning">LEGEND DATA REDACTED BY ANTI-CHEAT MODULE 7.02</div>
+              </div>
+            </div>
+
+            <!-- Faux Legend with non-sensical indicators -->
+            <div class="obfuscated-legend">
+              <span class="leg-item"><i class="leg-dot c-mud"></i> Sector Gamma: Residual Micro-Vibration</span>
+              <span class="leg-item"><i class="leg-dot c-yellow"></i> Sector Nu: Uncalibrated Retinal Friction</span>
+              <span class="leg-item"><i class="leg-dot c-magenta"></i> Sector Omega: Unpaid Telemetry Rent</span>
+              <span class="leg-item"><i class="leg-dot c-cyan"></i> Sector Zeta: Operator Complacency Coefficient</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: TERMS OF SERVICE (AUDIO SETTINGS HIDDEN HERE) ==================== -->
+    <section id="legal-panel" class="view-panel">
+      <div class="legal-scroll-container misaligned-card">
+        <div class="card-header-harsh olive-header">
+          <h2>TERMS OF SERVICE, ARBITRATION WAIVER & TELEMETRIC GOVERNANCE</h2>
+          <span class="badge-obscured">SECTION 1 THROUGH 19</span>
+        </div>
+
+        <div class="legal-body-dense" id="legal-text-box">
+          <div class="dense-para">
+            1.01 Recitals and Acknowledgement of Latency. The user agrees that all ping displays are purely decorative and do not represent actual round-trip socket duration. Any attempt to ping the server via ICMP constitutes actionable breach of covenant.
+          </div>
+          <div class="dense-para">
+            2.04 Forfeiture of Saved Operator Data. Operator inventories are leased on a revocable second-by-second license. By maintaining an inventory, you grant the publisher unilateral rights to randomly re-scramble slot coordinates.
+          </div>
+          <div class="dense-para">
+            3.88 Font Harmonization Disclaimer. The publisher reserves the right to employ unreadable serif and cursive typography to induce cognitive discipline.
+          </div>
+
+          <!-- THE COVETED AUDIO SETTINGS ARE HIDDEN RIGHT HERE IN SECTION 4.19 -->
+          <div class="hidden-audio-settings-box" id="secret-audio-panel">
+            <div class="secret-box-header">
+              <h3>SECTION 4.19.08: MANDATORY ACOUSTIC EMISSION & HARDWARE FREQUENCY CONTROL</h3>
+              <p>Notice: Modifying acoustic levels constitutes legal assent to sub-clause 4.19.8(b).</p>
+            </div>
+
+            <div class="audio-controls-cluster">
+              <div class="audio-slider-row">
+                <label for="master-volume">MASTER SYNTHESIZER VOLUME (REVERSED BEHAVIOR):</label>
+                <input type="range" id="master-volume" min="0" max="100" value="70">
+                <span id="vol-readout">70% (LOUD)</span>
+              </div>
+              <div class="audio-slider-row">
+                <label for="beep-pitch">HIGH-PITCH ERROR FREQUENCY (Hz):</label>
+                <input type="range" id="beep-pitch" min="400" max="4500" value="2800">
+                <span id="pitch-readout">2800 Hz (AGONY)</span>
+              </div>
+              <div class="audio-toggle-row">
+                <button id="test-beep-btn" class="ugly-test-sound-btn">EMIT TEST PIERCING FREQUENCY</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dense-para">
+            5.12 Jurisdictional Venue. Any dispute shall be settled in the municipal maritime courts of the Svalbard archipelago under 17th-century merchant treaty law.
+          </div>
+          <div class="dense-para">
+            6.01 Battery Drain Simulation. The client may intentionally display 1% battery status to test operator stress thresholds during competitive skirmishes.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: EULA (KEYBINDINGS HIDDEN HERE) ==================== -->
+    <section id="eula-panel" class="view-panel">
+      <div class="legal-scroll-container misaligned-card">
+        <div class="card-header-harsh yellow-glare">
+          <h2>EULA EXHIBIT B: THIRD-PARTY TELEMETRY & INPUT DRIVER BINDINGS</h2>
+        </div>
+        <div class="legal-body-dense">
+          <p class="dense-para">
+            All keyboard keystrokes are recorded in plain-text logs for quality assurance.
+          </p>
+          <div class="hidden-keybinds-zone">
+            <h3>INPUT MAPPING POLICIES (UNCONFIGURABLE)</h3>
+            <ul class="bad-keybind-list">
+              <li><strong>FIRE WEAPON:</strong> [SCROLL LOCK]</li>
+              <li><strong>JUMP / VAULT:</strong> [LEFT ALT + F4]</li>
+              <li><strong>RELOAD:</strong> [NUMPAD ENTER]</li>
+              <li><strong>OPEN INVENTORY:</strong> [F12 (TAKES SCREENSHOT & CRASHES CLIENT)]</li>
+              <li><strong>CROUCH:</strong> [PAUSE / BREAK]</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       5. AGGRESSIVE MICRO-INTERRUPTIONS & PERSISTENT BANNERS
+       ========================================================================= -->
+
+  <!-- PERSISTENT "UPDATE AVAILABLE" BANNER ANCHORED EXACTLY IN CENTER OF SCREEN -->
+  <aside id="center-update-banner" class="center-update-overlay" role="dialog" aria-modal="true">
+    <div class="update-banner-box">
+      <div class="banner-top-accent">
+        <span class="blinking-dot">●</span> CRITICAL REPOSITORY UPDATE REQUIRED
+      </div>
+      <div class="banner-content">
+        <h4 class="update-headline">PATCH v4.19.9 (SIZE: 34.82 GB) READY TO DEPLOY</h4>
+        <p class="update-subtext">
+          Security integrity compromised by client process memory offset. Continuing without deployment risks instantaneous account liquidation.
+        </p>
+        <div class="update-progress-dummy">
+          <div class="dummy-fill"></div>
+        </div>
+        <div class="banner-btn-row">
+          <!-- ONLY ONE BUTTON: REMIND ME IN 5 SECONDS -->
+          <button id="remind-5s-btn" class="annoying-remind-btn">
+            REMIND ME IN 5 SECONDS
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- AGGRESSIVE "RATE YOUR EXPERIENCE" POPUP (COVERS 60% OF SCREEN) -->
+  <div id="rate-modal" class="interruption-modal-backdrop hidden-modal">
+    <div class="rate-modal-card">
+      <div class="modal-stale-header">
+        <span class="cursive-sub">Valued Combatant Inquiry</span>
+        <h2>RATE YOUR SATISFACTION LEVEL WITH ARMORY DEPOT v4.19.8</h2>
+        <button id="close-rate-btn-fake" class="fake-close-button" title="Dismiss Survey">×</button>
+      </div>
+
+      <div class="rate-body">
+        <p class="rate-question">
+          How intensely did our non-standard diagonal slot clustering facilitate your tactical preparedness today?
+        </p>
+
+        <div class="star-rating-trap">
+          <label><input type="radio" name="rating" value="1"> 1 (Unbearable)</label>
+          <label><input type="radio" name="rating" value="2"> 2 (Distressing)</label>
+          <label><input type="radio" name="rating" value="3"> 3 (Sub-par)</label>
+          <label><input type="radio" name="rating" value="4"> 4 (Agonizing)</label>
+          <label><input type="radio" name="rating" value="5" checked> 5 (Deliriously Compliant)</label>
+        </div>
+
+        <div class="rate-comment-box">
+          <label>DETAILED TESTIMONY (MINIMUM 350 CHARACTERS REQUIRED):</label>
+          <textarea id="rate-textarea" placeholder="Describe the physical sensations in your forehead while hunting for item hitboxes..."></textarea>
+          <div id="char-counter" class="char-count-alert">0 / 350 CHARACTERS ENTERED</div>
+        </div>
+
+        <div class="rate-footer-buttons">
+          <button id="submit-rate-btn" class="rate-submit-btn" disabled>SUBMIT FORM FOR AUDIT</button>
+          <button id="dismiss-rate-btn" class="rate-skip-btn">DISMISS UNTIL NEXT CLICK EVENT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIP OF THE DAY TOAST INTERRUPTER -->
+  <div id="tip-banner" class="tip-toast-strip hidden-toast">
+    <span class="tip-icon">💡</span>
+    <div class="tip-content">
+      <strong>TACTICAL TIP #4,821:</strong>
+      <span id="tip-text">To prevent slot hitbox drift, gently blow pressurized nitrogen into your mouse sensor while holding Shift.</span>
+    </div>
+    <button id="dismiss-tip-btn" class="tip-close-btn">ACKNOWLEDGE</button>
+  </div>
+
+  <!-- BATTERY CRITICAL PANIC MODAL -->
+  <div id="battery-panic-modal" class="battery-alarm-modal hidden-modal">
+    <div class="battery-alarm-card">
+      <div class="alarm-title">⚠️ SYSTEM ALERT: BATTERY AT 1% ⚠️</div>
+      <p>HARDWARE THERMAL COLLAPSE IMMINENT. PLUG IN AUXILIARY DIESEL GENERATOR IMMEDIATELY.</p>
+      <button id="dismiss-bat-btn" class="panic-ack-btn">I ACCEPT CORRUPTION RISK</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. OBNOXIOUS 3-STEP CONFIRMATION TRAP MODAL (10s Countdown + Inverted Slider)
+       ========================================================================= -->
+  <div id="confirmation-trap-modal" class="confirmation-backdrop hidden-modal">
+    <div class="confirmation-card misaligned-modal">
+      <div class="step-indicator-bar">
+        <span class="step-chip" id="chip-step-1">STEP 1: INTENT</span>
+        <span class="step-chip" id="chip-step-2">STEP 2: 10s COOL-DOWN</span>
+        <span class="step-chip" id="chip-step-3">STEP 3: INVERTED SLIDER</span>
+      </div>
+
+      <div class="trap-modal-body">
+        
+        <!-- STAGE 1: Are you sure? -->
+        <div id="trap-stage-1" class="trap-stage active-stage">
+          <h2 class="trap-heading">AFFIRMATION OF HAZARDOUS DECISION</h2>
+          <p class="trap-desc" id="trap-action-desc">
+            You have initiated an irrevocable command sequence: <strong>[PERMANENT DATA PURGE / ITEM MODIFICATION]</strong>.
+          </p>
+          <p class="trap-warning-small">
+            This action cannot be undone by customer service, system administrators, or legal intervention.
+          </p>
+          <div class="trap-buttons-row">
+            <!-- INVERTED LOGIC: CANCEL is bright green, PROCEED is washed out grey -->
+            <button id="trap-cancel-btn" class="vibrant-green-danger-btn modal-cta">
+              ABORT ACTION (SAFE CHOICE)
+            </button>
+            <button id="trap-step1-next" class="dull-grey-btn modal-cta">
+              CONTINUE TO STEP 2 →
+            </button>
+          </div>
+        </div>
+
+        <!-- STAGE 2: 10s Countdown that RESETS if mouse leaves modal! -->
+        <div id="trap-stage-2" class="trap-stage">
+          <h2 class="trap-heading">MANDATORY COGNITIVE COOL-DOWN PERIOD</h2>
+          <p class="trap-desc">
+            To prevent spontaneous buyer or user remorse, the central regulatory authority imposes an unpauseable ten-second cognitive stabilization buffer.
+          </p>
+          
+          <div class="countdown-display-box">
+            <span class="countdown-large" id="countdown-timer">10.0</span>
+            <span class="countdown-unit">SECONDS REMAINING</span>
+          </div>
+
+          <div class="mouse-leave-warning" id="mouse-leave-notice">
+            ⚠️ NOTICE: Moving mouse cursor outside this modal perimeter will RESET the timer to 10.0s!
+          </div>
+
+          <div class="trap-buttons-row">
+            <button id="trap-step2-next" class="dull-grey-btn modal-cta" disabled>
+              WAITING FOR NEURAL SETTLING... (10s)
+            </button>
+          </div>
+        </div>
+
+        <!-- STAGE 3: Slider handle moves in the OPPOSITE direction of gesture -->
+        <div id="trap-stage-3" class="trap-stage">
+          <h2 class="trap-heading">BIOMETRIC SLIDER CONFIRMATION</h2>
+          <p class="trap-desc">
+            Drag the handle to the right edge to authorize final execution.
+          </p>
+          
+          <div class="inverted-slider-track-container" id="slider-track-box">
+            <div class="slider-track" id="slider-track">
+              <div class="slider-track-fill" id="slider-fill"></div>
+              <div class="slider-handle" id="slider-handle">◄ DRAG ►</div>
+            </div>
+            <div class="slider-labels-row">
+              <span>0% (IDLE)</span>
+              <span class="target-notch">100% (AUTHORIZE)</span>
+            </div>
+          </div>
+
+          <div class="slider-behavior-warning">
+            Note: Inertial dampener engaged. Slider responds inversely to drag velocity.
+          </div>
+
+          <div class="trap-buttons-row">
+            <button id="trap-finalize-btn" class="vibrant-green-danger-btn modal-cta" disabled>
+              SLIDE FULLY TO COMPLETE (0%)
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       7. VIRTUAL TOUCHPAD / MOUSE CURSOR CONTAINER
+       ========================================================================= -->
+  <div id="virtual-cursor" class="virtual-cursor-element hidden-element">
+    <div class="crosshair-core"></div>
+    <span class="cursor-latency-tag">LATENCY: 180ms</span>
+  </div>
+
+  <div id="virtual-trackpad-dock" class="virtual-trackpad-dock hidden-element">
+    <div class="trackpad-header">VIRTUAL PRECISION TRACKPAD</div>
+    <div class="trackpad-surface" id="trackpad-surface">
+      <div class="trackpad-puck" id="trackpad-puck"></div>
+      <span class="trackpad-watermark">DRAG SLOWLY HERE</span>
+    </div>
+    <div class="trackpad-buttons">
+      <button id="trackpad-lclick" class="trackpad-click-btn">VIRTUAL L-CLICK</button>
+      <button id="trackpad-rclick" class="trackpad-click-btn">VIRTUAL R-CLICK</button>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script src="app.js"></script>
+</body>
+</html>
